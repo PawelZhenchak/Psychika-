@@ -11,6 +11,7 @@ const navItems = [
   { href: '/app/exercises', icon: '🌬️', label: 'Ćwiczenia' },
   { href: '/app/journal', icon: '📓', label: 'Dziennik' },
   { href: '/app/sos', icon: '🆘', label: 'SOS' },
+  { href: '/app/settings', icon: '⚙️', label: 'Ustawienia' },
 ];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
