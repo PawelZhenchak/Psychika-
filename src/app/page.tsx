@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react';
 import Link from 'next/link';
+import { useAuth } from '@clerk/nextjs';
 
 const features = [
   { icon: '💬', title: 'Chat z AI', desc: 'Rozmawiaj o wszystkim bez oceniania. Dostępny o 3 w nocy, bez kolejek.', color: '#A78BFA' },
@@ -63,6 +64,7 @@ const plans = [
 export default function Home() {
   const [hovered, setHovered] = useState<number | null>(null);
   const featuresRef = useRef<HTMLElement>(null);
+  const { isSignedIn } = useAuth();
 
   const scrollToFeatures = () => {
     featuresRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -79,16 +81,26 @@ export default function Home() {
           <span className="text-xl font-bold gradient-text">Psychika</span>
         </div>
         <div className="flex gap-3">
-          <Link href="/app/chat"
-            className="px-4 py-2 rounded-xl text-sm font-medium transition-colors"
-            style={{ color: 'var(--text-muted)' }}>
-            Zaloguj się
-          </Link>
-          <Link href="/app/chat"
-            className="px-5 py-2 rounded-xl text-sm font-semibold transition-all hover:opacity-90"
-            style={{ background: 'var(--primary-soft)', color: '#fff' }}>
-            Zacznij za darmo
-          </Link>
+          {isSignedIn ? (
+            <Link href="/app/chat"
+              className="px-5 py-2 rounded-xl text-sm font-semibold transition-all hover:opacity-90"
+              style={{ background: 'var(--primary-soft)', color: '#fff' }}>
+              Otwórz aplikację →
+            </Link>
+          ) : (
+            <>
+              <Link href="/login"
+                className="px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+                style={{ color: 'var(--text-muted)' }}>
+                Zaloguj się
+              </Link>
+              <Link href="/register"
+                className="px-5 py-2 rounded-xl text-sm font-semibold transition-all hover:opacity-90"
+                style={{ background: 'var(--primary-soft)', color: '#fff' }}>
+                Zacznij za darmo
+              </Link>
+            </>
+          )}
         </div>
       </nav>
 

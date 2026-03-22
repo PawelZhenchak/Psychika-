@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { UserButton, useUser } from '@clerk/nextjs';
 
 const navItems = [
   { href: '/app/chat', icon: '💬', label: 'Chat' },
@@ -15,6 +16,7 @@ const navItems = [
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { user } = useUser();
 
   return (
     <div className="flex h-screen overflow-hidden" style={{ background: 'var(--bg-base)' }}>
@@ -85,10 +87,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         {/* Bottom user area */}
         <div className="border-t pt-4 mt-4 px-2" style={{ borderColor: 'var(--border)' }}>
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold"
-              style={{ background: 'var(--primary-soft)', color: '#fff' }}>P</div>
+            <UserButton />
             <div>
-              <p className="text-sm font-medium" style={{ color: 'var(--text)' }}>Użytkownik</p>
+              <p className="text-sm font-medium truncate max-w-[140px]" style={{ color: 'var(--text)' }}>
+                {user?.firstName || user?.emailAddresses?.[0]?.emailAddress || 'Użytkownik'}
+              </p>
               <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Plan Free</p>
             </div>
           </div>
