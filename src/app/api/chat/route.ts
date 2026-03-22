@@ -16,17 +16,36 @@ ZASADY:
 
 Masz na imię Psyche. Rozmawiasz po polsku.`;
 
+interface ChatMessage {
+  role: 'user' | 'ai';
+  text: string;
+}
+
 export async function POST(req: NextRequest) {
   try {
-    const { message } = await req.json();
+    const { message, history } = await req.json() as { message?: string; history?: ChatMessage[] };
     if (!message) return NextResponse.json({ error: 'Brak wiadomości' }, { status: 400 });
 
+    const contents = [
+      { role: 'user', parts: [{ text: SYSTEM_PROMPT }] },
+      { role: 'model', parts: [{ text: 'Rozumiem. Jestem tutaj dla Ciebie.' }] },
+    ];
+
+    // Add conversation history for context
+    if (history?.length) {
+      for (const msg of history) {
+        contents.push({
+          role: msg.role === 'user' ? 'user' : 'model',
+          parts: [{ text: msg.text }],
+        });
+      }
+    }
+
+    // Add current message
+    contents.push({ role: 'user', parts: [{ text: message }] });
+
     const body = {
-      contents: [
-        { role: 'user', parts: [{ text: SYSTEM_PROMPT }] },
-        { role: 'model', parts: [{ text: 'Rozumiem. Jestem tutaj dla Ciebie.' }] },
-        { role: 'user', parts: [{ text: message }] },
-      ],
+      contents,
       generationConfig: {
         temperature: 0.8,
         maxOutputTokens: 300,

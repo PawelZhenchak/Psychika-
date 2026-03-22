@@ -210,7 +210,7 @@ export default function Home() {
           <div className="text-4xl mb-4">🧠</div>
           <h2 className="text-2xl font-bold mb-3">Zacznij dziś. To nic nie kosztuje.</h2>
           <p className="mb-8" style={{ color: 'var(--text-muted)' }}>
-            Nie czekaj aż będzie "odpowiedni moment". Twoje zdrowie psychiczne jest ważne teraz.
+            Nie czekaj aż będzie &ldquo;odpowiedni moment&rdquo;. Twoje zdrowie psychiczne jest ważne teraz.
           </p>
           <Link href="/app/chat"
             className="inline-block px-8 py-4 rounded-2xl text-base font-semibold transition-all hover:scale-105"

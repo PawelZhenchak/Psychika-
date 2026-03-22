@@ -45,12 +45,22 @@ export default function ChatPage() {
     setLoading(true);
 
     try {
+      // Send history (skip the initial greeting) for conversation context
+      const history = [...messages, userMsg]
+        .filter((_, i) => i > 0) // skip initial AI greeting
+        .slice(-20); // last 20 messages max
+
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: msg }),
+        body: JSON.stringify({ message: msg, history }),
       });
       const data = await res.json();
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
       setMessages((prev) => [
         ...prev,
         {
