@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { useChatLimit } from '@/hooks/useChatLimit';
+import UpgradeModal from '@/components/UpgradeModal';
 
 interface Message {
   role: 'user' | 'ai';
@@ -16,6 +18,8 @@ const SUGGESTIONS = [
 ];
 
 export default function ChatPage() {
+  const { canSend, remaining, increment, isLoading, limit } = useChatLimit();
+  const [showUpgrade, setShowUpgrade] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'ai',
@@ -34,6 +38,12 @@ export default function ChatPage() {
   const sendMessage = async (text?: string) => {
     const msg = text || input.trim();
     if (!msg || loading) return;
+
+    if (!canSend) {
+      setShowUpgrade(true);
+      return;
+    }
+
     setInput('');
 
     const userMsg: Message = {
@@ -44,11 +54,13 @@ export default function ChatPage() {
     setMessages((prev) => [...prev, userMsg]);
     setLoading(true);
 
+    // Increment counter for free users
+    increment();
+
     try {
-      // Send history (skip the initial greeting) for conversation context
       const history = [...messages, userMsg]
-        .filter((_, i) => i > 0) // skip initial AI greeting
-        .slice(-20); // last 20 messages max
+        .filter((_, i) => i > 0)
+        .slice(-20);
 
       const res = await fetch('/api/chat', {
         method: 'POST',
@@ -81,6 +93,9 @@ export default function ChatPage() {
 
   return (
     <div className="flex flex-col h-full">
+      {/* Upgrade modal */}
+      {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} />}
+
       {/* Header */}
       <div className="flex items-center gap-3 px-6 py-4 border-b shrink-0"
         style={{ borderColor: 'var(--border)' }}>
@@ -93,9 +108,22 @@ export default function ChatPage() {
             Online · Dostępny 24/7
           </p>
         </div>
-        <div className="ml-auto text-xs px-3 py-1 rounded-full"
-          style={{ background: 'var(--bg-card2)', color: 'var(--text-muted)' }}>
-          🔒 Anonimowo
+        <div className="ml-auto flex items-center gap-2">
+          {/* Message counter for free users */}
+          {!isLoading && remaining < limit && (
+            <div className="text-xs px-3 py-1 rounded-full"
+              style={{
+                background: remaining <= 3 ? 'rgba(239,68,68,0.15)' : 'var(--bg-card2)',
+                color: remaining <= 3 ? '#EF4444' : 'var(--text-muted)',
+                border: remaining <= 3 ? '1px solid rgba(239,68,68,0.3)' : 'none',
+              }}>
+              💬 {remaining}/{limit}
+            </div>
+          )}
+          <div className="text-xs px-3 py-1 rounded-full"
+            style={{ background: 'var(--bg-card2)', color: 'var(--text-muted)' }}>
+            🔒 Anonimowo
+          </div>
         </div>
       </div>
 
@@ -142,8 +170,32 @@ export default function ChatPage() {
         <div ref={bottomRef} />
       </div>
 
+      {/* Paywall banner when limit reached */}
+      {!canSend && (
+        <div className="mx-6 mb-2 p-4 rounded-2xl text-center"
+          style={{
+            background: 'linear-gradient(135deg, rgba(124,58,237,0.15), rgba(14,148,136,0.15))',
+            border: '1px solid rgba(167,139,250,0.3)',
+          }}>
+          <p className="text-sm font-semibold mb-1" style={{ color: 'var(--text)' }}>
+            Wykorzystałeś dzisiejszy limit 💬
+          </p>
+          <p className="text-xs mb-3" style={{ color: 'var(--text-muted)' }}>
+            Darmowy plan ma {limit} wiadomości dziennie. Odblokuj nielimitowany chat z Premium.
+          </p>
+          <button onClick={() => setShowUpgrade(true)}
+            className="inline-block px-6 py-2 rounded-xl text-sm font-semibold transition-all hover:scale-105"
+            style={{ background: 'linear-gradient(135deg, #7C3AED, #0D9488)', color: '#fff' }}>
+            Odblokuj Premium →
+          </button>
+          <p className="text-xs mt-2" style={{ color: 'var(--text-muted)' }}>
+            Limit resetuje się o północy
+          </p>
+        </div>
+      )}
+
       {/* Suggestions */}
-      {messages.length === 1 && (
+      {messages.length === 1 && canSend && (
         <div className="px-6 pb-2 flex flex-wrap gap-2">
           {SUGGESTIONS.map((s) => (
             <button key={s} onClick={() => sendMessage(s)}
@@ -163,22 +215,24 @@ export default function ChatPage() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
-            placeholder="Napisz jak się czujesz..."
+            placeholder={!canSend ? 'Limit wiadomości wyczerpany...' : 'Napisz jak się czujesz...'}
+            disabled={!canSend}
             className="flex-1 resize-none rounded-2xl px-4 py-3 text-sm outline-none transition-all"
             style={{
               background: 'var(--bg-card)',
               border: '1px solid var(--border)',
               color: 'var(--text)',
               maxHeight: 120,
+              opacity: !canSend ? 0.5 : 1,
             }}
           />
           <button
             onClick={() => sendMessage()}
-            disabled={!input.trim() || loading}
+            disabled={!input.trim() || loading || !canSend}
             className="w-11 h-11 rounded-2xl flex items-center justify-center transition-all shrink-0"
             style={{
-              background: input.trim() && !loading ? 'linear-gradient(135deg, #7C3AED, #0D9488)' : 'var(--bg-card)',
-              color: input.trim() && !loading ? '#fff' : 'var(--text-muted)',
+              background: input.trim() && !loading && canSend ? 'linear-gradient(135deg, #7C3AED, #0D9488)' : 'var(--bg-card)',
+              color: input.trim() && !loading && canSend ? '#fff' : 'var(--text-muted)',
               border: '1px solid var(--border)',
             }}
           >

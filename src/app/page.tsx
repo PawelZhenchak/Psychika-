@@ -40,7 +40,7 @@ const plans = [
       'Historia rozmów',
     ],
     cta: 'Wybierz Premium',
-    href: '/app/chat',
+    href: '/pricing',
     highlight: true,
   },
   {
@@ -56,7 +56,7 @@ const plans = [
       'Wczesny dostęp do nowości',
     ],
     cta: 'Wybierz Pro',
-    href: '/app/chat',
+    href: '/pricing',
     highlight: false,
   },
 ];
