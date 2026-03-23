@@ -10,8 +10,15 @@ const EXERCISES = [
     desc: 'Technika Navy SEALs. Uspokaja w minutę.',
     color: '#A78BFA',
     steps: ['Wdech', 'Zatrzymaj', 'Wydech', 'Zatrzymaj'],
+    hints: [
+      'Wdychaj powoli przez NOS, wypełniając brzuch, potem klatkę',
+      'Zatrzymaj oddech — nie napinaj się, bądź spokojny',
+      'Wydychaj powoli przez USTA, opróżniając klatkę, potem brzuch',
+      'Zatrzymaj — bądź w ciszy, poczuj spokój',
+    ],
     durations: [4, 4, 4, 4],
     rounds: 4,
+    prepare: 'Usiądź wygodnie, plecy proste. Połóż dłonie na kolanach. Zamknij oczy.',
   },
   {
     id: '478',
@@ -20,8 +27,14 @@ const EXERCISES = [
     desc: 'Na bezsenność i silny stres. Działa jak naturalny środek uspokajający.',
     color: '#5EEAD4',
     steps: ['Wdech', 'Zatrzymaj', 'Wydech'],
+    hints: [
+      'Wdychaj cicho przez NOS licząc do 4 — wypełnij płuca w pełni',
+      'Zatrzymaj oddech na 7 sekund — trzymaj spokojnie bez napięcia',
+      'Wydychaj przez USTA z dźwiękiem "szuuu" przez pełne 8 sekund',
+    ],
     durations: [4, 7, 8],
     rounds: 4,
+    prepare: 'Połóż czubek języka za górnymi zębami. Tę pozycję utrzymaj przez całe ćwiczenie.',
   },
   {
     id: 'grounding',
@@ -36,8 +49,16 @@ const EXERCISES = [
       '2 rzeczy które WĄCHASZ',
       '1 rzecz którą SMAKUJESZ',
     ],
+    hints: [
+      'Rozejrzyj się uważnie — krzesło, ściana, okno, lampa, cokolwiek widocznego',
+      'Dotknij podłogi, ubrania, skóry — poczuj fakturę, temperaturę, twardość',
+      'Zamknij oczy i wsłuchaj się — wentylator, ulica, oddech, cokolwiek',
+      'Powąchaj powietrze, ubranie, cokolwiek w pobliżu — skup całą uwagę',
+      'Poczuj smak w ustach — ślina, resztka jedzenia, cokolwiek',
+    ],
     durations: [15, 15, 15, 15, 15],
     rounds: 1,
+    prepare: 'Zatrzymaj się. Oddychaj normalnie. Skup się na tym co teraz czujesz — nie na myślach.',
   },
   {
     id: 'relax',
@@ -46,11 +67,17 @@ const EXERCISES = [
     desc: 'Prosty i skuteczny. Idealny na codzienne chwile napięcia.',
     color: '#FCD34D',
     steps: ['Wdech', 'Wydech'],
+    hints: [
+      'Wdychaj przez NOS powoli i równomiernie przez 4 sekundy — brzuch się unosi pierwszy',
+      'Wydychaj przez USTA przez 6 sekund — długi, spokojny wydech rozluźnia ciało',
+    ],
     durations: [4, 6],
     rounds: 6,
+    prepare: 'Usiądź lub połóż się. Połóż rękę na brzuchu — poczuj jak się unosi przy wdechu.',
   },
 ];
 
+type Exercise = typeof EXERCISES[0] & { hints?: string[]; prepare?: string };
 type Phase = { step: string; duration: number; index: number };
 
 export default function ExercisesPage() {
@@ -62,7 +89,7 @@ export default function ExercisesPage() {
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const exercise = EXERCISES.find(e => e.id === active);
+  const exercise = EXERCISES.find(e => e.id === active) as Exercise | undefined;
 
   const clearTimers = () => {
     if (intervalRef.current) clearInterval(intervalRef.current);
@@ -160,7 +187,13 @@ export default function ExercisesPage() {
                   </div>
                 </div>
 
-                <p className="text-xl font-bold mb-6" style={{ color: 'var(--text)' }}>{phase?.step}</p>
+                <p className="text-xl font-bold mb-2" style={{ color: 'var(--text)' }}>{phase?.step}</p>
+                {exercise?.hints && phase && (
+                  <p className="text-sm mb-4 px-4 text-center leading-relaxed"
+                    style={{ color: 'var(--text-muted)' }}>
+                    {exercise.hints[phase.index]}
+                  </p>
+                )}
 
                 {/* Step indicators */}
                 <div className="flex justify-center gap-2 mb-6">
@@ -199,6 +232,11 @@ export default function ExercisesPage() {
                   <div className="flex-1">
                     <p className="font-semibold" style={{ color: ex.color }}>{ex.name}</p>
                     <p className="text-sm mt-0.5" style={{ color: 'var(--text-muted)' }}>{ex.desc}</p>
+                    {(ex as Exercise).prepare && (
+                      <p className="text-xs mt-2 italic" style={{ color: 'var(--text-muted)', opacity: 0.7 }}>
+                        💡 {(ex as Exercise).prepare}
+                      </p>
+                    )}
                   </div>
                   <div className="text-xs px-3 py-1 rounded-full shrink-0"
                     style={{ background: 'var(--bg-card2)', color: 'var(--text-muted)' }}>
