@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useUserPlan } from '@/hooks/useUserPlan';
+import Link from 'next/link';
 
 interface JournalEntry {
   id: string;
@@ -24,7 +26,10 @@ const PROMPTS = [
   'Czego dzisiaj się nauczyłeś/aś?',
 ];
 
+const FREE_JOURNAL_LIMIT = 5;
+
 export default function JournalPage() {
+  const { isPremium } = useUserPlan();
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [view, setView] = useState<'list' | 'write' | 'read'>('list');
   const [current, setCurrent] = useState<JournalEntry | null>(null);
@@ -43,8 +48,10 @@ export default function JournalPage() {
     setEntries(entries);
   };
 
+  const journalLimitReached = !isPremium && entries.length >= FREE_JOURNAL_LIMIT;
+
   const saveEntry = () => {
-    if (!content.trim()) return;
+    if (!content.trim() || journalLimitReached) return;
     setSaving(true);
     const entry: JournalEntry = {
       id: Date.now().toString(),
@@ -103,11 +110,19 @@ export default function JournalPage() {
           <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>Prywatne notatki tylko dla Ciebie</p>
         </div>
         {view === 'list' && (
-          <button onClick={() => setView('write')}
-            className="px-4 py-2 rounded-xl text-sm font-semibold transition-all"
-            style={{ background: 'linear-gradient(135deg, #7C3AED, #0D9488)', color: '#fff' }}>
-            + Nowy wpis
-          </button>
+          !isPremium && entries.length >= FREE_JOURNAL_LIMIT ? (
+            <Link href="/pricing"
+              className="px-4 py-2 rounded-xl text-sm font-semibold transition-all"
+              style={{ background: 'linear-gradient(135deg, #7C3AED, #0D9488)', color: '#fff' }}>
+              🔒 Odblokuj Premium
+            </Link>
+          ) : (
+            <button onClick={() => setView('write')}
+              className="px-4 py-2 rounded-xl text-sm font-semibold transition-all"
+              style={{ background: 'linear-gradient(135deg, #7C3AED, #0D9488)', color: '#fff' }}>
+              + Nowy wpis
+            </button>
+          )
         )}
         {view !== 'list' && (
           <button onClick={() => setView('list')}
@@ -170,11 +185,19 @@ export default function JournalPage() {
 
             {/* AI comment */}
             {!current.aiComment && !current.loadingAi && (
-              <button onClick={() => askAi(current)}
-                className="py-3 rounded-xl text-sm font-medium transition-all"
-                style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--primary)' }}>
-                🧠 Zapytaj AI o komentarz
-              </button>
+              isPremium ? (
+                <button onClick={() => askAi(current)}
+                  className="py-3 rounded-xl text-sm font-medium transition-all"
+                  style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--primary)' }}>
+                  🧠 Zapytaj AI o komentarz
+                </button>
+              ) : (
+                <Link href="/pricing"
+                  className="py-3 rounded-xl text-sm font-medium transition-all text-center block"
+                  style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text-muted)' }}>
+                  🔒 Komentarz AI — dostępny w Premium
+                </Link>
+              )
             )}
             {current.loadingAi && (
               <div className="py-3 rounded-xl text-sm text-center" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text-muted)' }}>
@@ -212,6 +235,22 @@ export default function JournalPage() {
               </div>
             ) : (
               <div className="flex flex-col gap-3">
+                {/* Limit banner for free users */}
+                {!isPremium && (
+                  <div className="p-3 rounded-xl text-center text-xs"
+                    style={{
+                      background: entries.length >= FREE_JOURNAL_LIMIT ? 'rgba(239,68,68,0.1)' : 'var(--bg-card2)',
+                      border: entries.length >= FREE_JOURNAL_LIMIT ? '1px solid rgba(239,68,68,0.3)' : '1px solid var(--border)',
+                      color: entries.length >= FREE_JOURNAL_LIMIT ? '#EF4444' : 'var(--text-muted)',
+                    }}>
+                    📓 {entries.length}/{FREE_JOURNAL_LIMIT} wpisów · {entries.length >= FREE_JOURNAL_LIMIT ? 'Limit osiągnięty — ' : ''}
+                    {entries.length >= FREE_JOURNAL_LIMIT && (
+                      <Link href="/pricing" className="underline font-semibold" style={{ color: 'var(--primary)' }}>
+                        Odblokuj Premium
+                      </Link>
+                    )}
+                  </div>
+                )}
                 {entries.map(e => (
                   <button key={e.id}
                     onClick={() => { setCurrent(e); setView('read'); }}

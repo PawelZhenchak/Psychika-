@@ -143,7 +143,9 @@ export default function PricingPage() {
                   background: plan.highlight ? 'linear-gradient(135deg, #7C3AED, #0D9488)' : 'var(--bg-card2)',
                   color: plan.highlight ? '#fff' : 'var(--text)',
                   border: plan.highlight ? 'none' : '1px solid var(--border)',
-                  opacity: loading === plan.id ? 0.7 : 1,
+                  opacity: loading === plan.id ? 0.5 : 1,
+                  pointerEvents: loading === plan.id ? 'none' : 'auto',
+                  cursor: loading === plan.id ? 'not-allowed' : 'pointer',
                 }}>
                 {loading === plan.id ? 'Przekierowywanie...' : plan.cta}
               </button>

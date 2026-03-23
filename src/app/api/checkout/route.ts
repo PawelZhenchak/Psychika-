@@ -29,8 +29,12 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json({ url: session.url });
-  } catch (err) {
+  } catch (err: unknown) {
     console.error('Checkout error:', err);
-    return NextResponse.json({ error: 'Błąd serwera' }, { status: 500 });
+    const message = err instanceof Stripe.errors.StripeError
+      ? `Błąd płatności: ${err.message}`
+      : 'Błąd serwera — spróbuj ponownie';
+    const status = err instanceof Stripe.errors.StripeError ? err.statusCode || 500 : 500;
+    return NextResponse.json({ error: message }, { status });
   }
 }

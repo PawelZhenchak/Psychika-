@@ -32,10 +32,12 @@ export function useChatLimit() {
   }, []);
 
   const increment = useCallback(() => {
-    const newCount = count + 1;
-    setCount(newCount);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ date: today(), count: newCount }));
-  }, [count]);
+    setCount((prev) => {
+      const newCount = prev + 1;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ date: today(), count: newCount }));
+      return newCount;
+    });
+  }, []);
 
   const canSend = isPremium || count < FREE_LIMIT;
   const remaining = Math.max(0, FREE_LIMIT - count);

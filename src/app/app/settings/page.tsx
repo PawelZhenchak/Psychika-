@@ -53,7 +53,7 @@ function Toggle({ label, desc, value, onChange }: {
 
 export default function SettingsPage() {
   const { settings, update } = useSettings();
-  const { plan } = useUserPlan();
+  const { plan, loading: planLoading } = useUserPlan();
   const { signOut } = useClerk();
   const { user } = useUser();
   const router = useRouter();
@@ -89,7 +89,7 @@ export default function SettingsPage() {
             </div>
             <span className="ml-auto text-xs px-3 py-1 rounded-full font-semibold"
               style={{ background: planColor + '22', color: planColor }}>
-              {plan.toUpperCase()}
+              {planLoading ? '...' : plan.toUpperCase()}
             </span>
           </div>
           {plan === 'free' && (

@@ -1,0 +1,26 @@
+{
+  "name": "Psychika",
+  "short_name": "Psychika",
+  "description": "Twój AI towarzysz zdrowia psychicznego. Dostępny 24/7, bez oceniania.",
+  "start_url": "/app/chat",
+  "display": "standalone",
+  "background_color": "#0F0A1E",
+  "theme_color": "#7C3AED",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["health", "lifestyle"],
+  "lang": "pl"
+}

@@ -26,18 +26,33 @@ export async function POST(req: NextRequest) {
   try {
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object;
-      const userId: string = session.metadata?.userId;
-      const plan: string = session.metadata?.plan;
-      if (userId && plan) {
-        await supabaseAdmin.from('psychika_profiles').upsert({
-          clerk_user_id: userId,
-          plan,
-          stripe_customer_id: session.customer ?? null,
-          stripe_subscription_id: session.subscription ?? null,
-          updated_at: new Date().toISOString(),
-        }, { onConflict: 'clerk_user_id' });
-        console.log(`Plan updated: ${userId} -> ${plan}`);
+      const userId: string | undefined = session.metadata?.userId;
+      const plan: string | undefined = session.metadata?.plan;
+
+      if (!userId || !plan) {
+        console.error('Webhook missing metadata:', { userId, plan, sessionId: session.id });
+        return NextResponse.json({ error: 'Missing metadata' }, { status: 400 });
       }
+
+      if (!['premium', 'pro'].includes(plan)) {
+        console.error('Webhook invalid plan:', plan);
+        return NextResponse.json({ error: 'Invalid plan' }, { status: 400 });
+      }
+
+      const { error } = await supabaseAdmin.from('psychika_profiles').upsert({
+        clerk_user_id: userId,
+        plan,
+        stripe_customer_id: session.customer ?? null,
+        stripe_subscription_id: session.subscription ?? null,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'clerk_user_id' });
+
+      if (error) {
+        console.error('Supabase upsert error:', error);
+        return NextResponse.json({ error: 'Database error' }, { status: 500 });
+      }
+
+      console.log(`Plan updated: ${userId} -> ${plan}`);
     }
 
     if (event.type === 'customer.subscription.deleted') {

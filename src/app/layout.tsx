@@ -11,6 +11,16 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "Psychika — Twój spokój, zawsze przy Tobie",
   description: "AI towarzysz zdrowia psychicznego. Anonimowy, dostępny 24/7, bez oceniania.",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Psychika",
+  },
+  other: {
+    "mobile-web-app-capable": "yes",
+    "theme-color": "#7C3AED",
+  },
 };
 
 export default function RootLayout({
@@ -21,6 +31,10 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="pl">
+        <head>
+          <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+          <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+        </head>
         <body className={`${inter.variable} antialiased`}>
           {children}
         </body>
